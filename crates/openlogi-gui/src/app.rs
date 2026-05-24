@@ -1,9 +1,9 @@
 //! Root view: header (device carousel), body (mouse model area and
 //! configuration panel), footer (settings / version).
 //!
-//! Body currently hosts the Phase 2 [`DpiPanel`]; the surrounding layout
-//! (mouse model + multi-tab config) is being filled in across the remaining
-//! UI.md phases.
+//! Body currently hosts the Phase 2 [`DpiPanel`] beside the Phase 4
+//! [`ActionPopoverRow`]; the surrounding layout (mouse model + multi-tab
+//! config) is being filled in across the remaining UI.md phases.
 
 use gpui::{
     AppContext as _, Context, Entity, FontWeight, IntoElement, ParentElement, Render, Styled,
@@ -12,14 +12,16 @@ use gpui::{
 use gpui_component::{ActiveTheme, h_flex, v_flex};
 use openlogi_core::device::DeviceInventory;
 
+use crate::components::action_popover::ActionPopoverRow;
 use crate::components::device_carousel::DeviceCarousel;
 use crate::components::dpi_panel::DpiPanel;
 use crate::state::AppState;
-use crate::theme::{BG_DARK, BORDER, FOOTER_H, HEADER_H, TEXT_PRIMARY};
+use crate::theme::{BG_DARK, BORDER, FOOTER_H, HEADER_H, TEXT_MUTED, TEXT_PRIMARY};
 
 pub struct AppView {
     carousel: Entity<DeviceCarousel>,
     dpi_panel: Entity<DpiPanel>,
+    action_row: Entity<ActionPopoverRow>,
 }
 
 impl AppView {
@@ -29,9 +31,11 @@ impl AppView {
         }
         let carousel = cx.new(|cx| DeviceCarousel::new(inventories, cx));
         let dpi_panel = cx.new(DpiPanel::new);
+        let action_row = cx.new(|_| ActionPopoverRow::default_row());
         Self {
             carousel,
             dpi_panel,
+            action_row,
         }
     }
 }
@@ -43,7 +47,7 @@ impl Render for AppView {
             .bg(rgb(BG_DARK))
             .text_color(rgb(TEXT_PRIMARY))
             .child(header(&self.carousel))
-            .child(body(&self.dpi_panel))
+            .child(body(&self.dpi_panel, &self.action_row))
             .child(footer(cx))
     }
 }
@@ -66,15 +70,26 @@ fn header(carousel: &Entity<DeviceCarousel>) -> impl IntoElement {
         .child(div().flex_1().min_w_0().child(carousel.clone()))
 }
 
-fn body(dpi_panel: &Entity<DpiPanel>) -> impl IntoElement {
+fn body(dpi_panel: &Entity<DpiPanel>, action_row: &Entity<ActionPopoverRow>) -> impl IntoElement {
     h_flex()
         .flex_1()
         .w_full()
         .min_h_0()
-        .items_center()
+        .items_start()
         .justify_center()
-        .gap_8()
+        .gap_10()
         .p_8()
+        .child(
+            v_flex()
+                .gap_4()
+                .child(
+                    div()
+                        .text_sm()
+                        .text_color(rgb(TEXT_MUTED))
+                        .child("Button bindings"),
+                )
+                .child(action_row.clone()),
+        )
         .child(dpi_panel.clone())
 }
 

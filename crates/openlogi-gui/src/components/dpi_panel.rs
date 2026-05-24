@@ -53,10 +53,13 @@ impl DpiPanel {
                 .map_or(crate::state::DEFAULT_DPI, |s| s.dpi),
         );
 
+        // Order matters: SliderState defaults to max=100, and `.min(N)` calls
+        // update_thumb_pos which clamps against the current max. Setting
+        // max=6400 first keeps the intermediate state coherent.
         let slider_state = cx.new(|_| {
             SliderState::new()
-                .min(MIN_DPI)
                 .max(MAX_DPI)
+                .min(MIN_DPI)
                 .step(STEP_DPI)
                 .default_value(initial_dpi)
         });
