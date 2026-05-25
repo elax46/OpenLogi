@@ -1,11 +1,11 @@
 #![allow(
     dead_code,
-    reason = "full schema parsed; only a subset is read in v0.0.1 (display name + files-on-disk lookup)"
+    reason = "full schema parsed; only a subset is consumed by today's callers"
 )]
 
 //! Parses the `index.json` shipped by assets.openlogi.org.
 //!
-//! Schema mirrors the file the `stage_assets.py` helper emits:
+//! Schema mirrors the file the assets repo's `stage_assets.py` emits:
 //!
 //! ```json
 //! {
@@ -59,6 +59,7 @@ impl Index {
     }
 
     /// Find the depot whose `modelId` matches `model_id` exactly.
+    #[must_use]
     pub fn find_by_model_id(&self, model_id: &str) -> Option<(&str, &DeviceEntry)> {
         self.devices
             .iter()
@@ -74,6 +75,7 @@ impl Index {
     /// on the same device. Matching on the trailing bolt PID is still
     /// unambiguous in practice because Logitech reserves PID ranges per
     /// product family.
+    #[must_use]
     pub fn find_by_model_id_suffix(&self, suffix: &str) -> Option<(&str, &DeviceEntry)> {
         let suffix_lower = suffix.to_ascii_lowercase();
         self.devices

@@ -4220,11 +4220,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "openlogi-assets"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tracing",
+ "ureq",
+]
+
+[[package]]
 name = "openlogi-cli"
 version = "0.0.1"
 dependencies = [
  "anyhow",
  "clap",
+ "openlogi-assets",
  "openlogi-core",
  "openlogi-hid",
  "tokio",
@@ -4252,15 +4265,12 @@ dependencies = [
  "gpui",
  "gpui-component",
  "gpui_platform",
+ "openlogi-assets",
  "openlogi-core",
  "openlogi-hid",
- "serde",
- "serde_json",
- "sha2",
  "tokio",
  "tracing",
  "tracing-subscriber",
- "ureq",
 ]
 
 [[package]]

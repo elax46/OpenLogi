@@ -15,6 +15,9 @@ path = "src/main.rs"
 [dependencies]
 openlogi-core = { path = "../openlogi-core" }
 openlogi-hid = { path = "../openlogi-hid" }
+# Shared asset schema + HTTP fetch + sha verification. Re-exports ureq /
+# sha2 transitively so we don't list them again.
+openlogi-assets = { path = "../openlogi-assets" }
 # GPU-accelerated UI framework and its component library.
 gpui = { workspace = true }
 gpui_platform = { workspace = true }
@@ -26,20 +29,13 @@ anyhow = { workspace = true }
 # Structured logging.
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
-# Asset registry + per-device metadata are JSON on disk.
-serde = { workspace = true }
-serde_json = { workspace = true }
 # Per-user cache directory resolution (mirrors openlogi-core/paths.rs).
 directories = { workspace = true }
-# Blocking HTTP for the startup asset sync against assets.openlogi.org.
-ureq = { workspace = true }
-# SHA-256 for asset cache validation.
-sha2 = { workspace = true }
 
 [lints]
 workspace = true
 
-# cargo-bundle config. Run `python3 scripts/sync_bundle_assets.py` to
+# cargo-bundle config. Run `cargo run -p openlogi-cli -- assets sync` to
 # populate `assets/` from assets.openlogi.org, then `cargo bundle
 # --release` to produce `target/release/bundle/osx/OpenLogi.app` with
 # the assets baked into `Contents/Resources/assets/`.

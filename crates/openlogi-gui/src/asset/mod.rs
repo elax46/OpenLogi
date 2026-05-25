@@ -3,28 +3,24 @@
 //! At render time [`AssetCache::resolve`] probes (in order):
 //!
 //! 1. The macOS app bundle's `Contents/Resources/assets/` — populated at
-//!    packaging time by `scripts/sync_bundle_assets.py` and shipped with
-//!    every release. Zero network at end-user runtime.
+//!    packaging time by `openlogi assets sync` and shipped with every
+//!    release. Zero network at end-user runtime.
 //! 2. The per-user cache at `~/Library/Application Support/dev.OpenLogi
-//!    .openlogi/assets/` — populated by [`sync::sync`] when it runs (debug
-//!    builds and the bundle-missing safety net).
+//!    .openlogi/assets/` — populated by [`sync::sync`] when it runs
+//!    (debug builds and the bundle-missing safety net).
 //!
 //! Either tier missing the requested files falls through to the next, and
 //! ultimately to the synthetic silhouette. The write side ([`sync::sync`])
 //! always targets the user cache — the bundle is read-only.
 
-pub mod index;
-pub mod metadata;
 pub mod sync;
 
 use std::path::{Path, PathBuf};
 
 use directories::ProjectDirs;
+use openlogi_assets::{DeviceEntry, Index, Metadata};
 use openlogi_core::device::DeviceModelInfo;
 use tracing::{debug, warn};
-
-use self::index::{DeviceEntry, Index};
-use self::metadata::Metadata;
 
 const INDEX_FILE: &str = "index.json";
 
@@ -130,13 +126,14 @@ fn user_cache_root() -> PathBuf {
 }
 
 /// Read-only root pointing inside the macOS `.app` bundle when the binary
-/// is launched from one: `<exe_dir>/../Resources/assets/`. Returns `None`
-/// for plain `cargo run`, Linux/Windows builds, or any layout without that
-/// structure.
+/// is launched from one: `<exe_dir>/../Resources/assets/`. The probe also
+/// requires an `index.json` inside — an empty dir (e.g. `cargo bundle`
+/// run without first syncing) is treated as not-present so the runtime
+/// HTTP fallback can still recover.
 fn bundle_assets_root() -> Option<PathBuf> {
     let exe = std::env::current_exe().ok()?;
     let candidate = exe.parent()?.parent()?.join("Resources").join("assets");
-    candidate.is_dir().then_some(candidate)
+    candidate.join(INDEX_FILE).is_file().then_some(candidate)
 }
 
 /// Walk read roots looking for the first parseable `index.json`. Bundle
@@ -176,9 +173,6 @@ fn load_index(roots: &[PathBuf]) -> Option<Index> {
 ///    `extended_model_id` (registry: `"2b042"`, device reports
 ///    `ext=01 + b042`). Safe in practice because Logitech reserves PID
 ///    ranges per product family.
-///
-/// Exposed crate-internal so both [`AssetCache::resolve`] and
-/// [`sync::sync`] use the same matching rules.
 pub(crate) fn resolve_in_index<'a>(
     index: &'a Index,
     model: &DeviceModelInfo,

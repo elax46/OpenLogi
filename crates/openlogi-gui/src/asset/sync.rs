@@ -8,20 +8,25 @@
 //! and ultimately to the synthetic silhouette.
 
 use std::fs;
-use std::io::Read as _;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context as _, Result};
+use openlogi_assets::http;
+use openlogi_assets::{DeviceEntry, Index};
 use openlogi_core::device::DeviceModelInfo;
-use sha2::{Digest, Sha256};
 use tracing::{debug, info, warn};
 
 use super::AssetCache;
-use super::index::{DeviceEntry, Index};
 
 /// Default origin for asset fetches. Overridable via `OPENLOGI_ASSETS`
 /// so dev / staging deployments can point elsewhere without a rebuild.
 pub const DEFAULT_BASE: &str = "https://assets.openlogi.org";
+
+/// Files the GUI actually opens. We only fetch these; the rest of each
+/// depot stays remote until a feature needs it.
+const FETCH_FILES: &[&str] = &["front_core.png", "core_metadata.json"];
+
+const INDEX_FILE: &str = "index.json";
 
 /// Whether the startup HTTP sync should run on this launch.
 ///
@@ -43,17 +48,7 @@ pub fn should_run(has_bundle: bool) -> bool {
     !has_bundle
 }
 
-/// Files the GUI actually opens. We only fetch these; the rest of each
-/// depot stays remote until a feature needs it.
-const FETCH_FILES: &[&str] = &["front_core.png", "core_metadata.json"];
-
-const INDEX_PATH: &str = "index.json";
-
 /// Refresh the local cache for every model the host can plausibly want.
-///
-/// `models` is what `openlogi_hid::enumerate` reported — usually one
-/// entry, occasionally more. The `OPENLOGI_FORCE_DEPOT` override is
-/// honoured so devs without the physical hardware can still test.
 pub fn sync(server: &str, models: &[DeviceModelInfo]) -> Result<()> {
     let cache_root = AssetCache::new().cache_root().to_path_buf();
     fs::create_dir_all(&cache_root)
@@ -96,14 +91,11 @@ pub fn sync(server: &str, models: &[DeviceModelInfo]) -> Result<()> {
 }
 
 fn refresh_index(server: &str, cache_root: &Path) -> Result<Index> {
-    let url = format!("{}/{INDEX_PATH}", server.trim_end_matches('/'));
-    debug!(%url, "fetching index.json");
-    let body = http_get_bytes(&url)?;
-    let local = cache_root.join(INDEX_PATH);
-    fs::write(&local, &body).with_context(|| format!("write {}", local.display()))?;
-    let parsed: Index = serde_json::from_slice(&body).context("parse fetched index.json")?;
-    debug!(devices = parsed.devices.len(), "index.json refreshed");
-    Ok(parsed)
+    let (raw, index) = http::fetch_index_raw(server)?;
+    let local = cache_root.join(INDEX_FILE);
+    fs::write(&local, &raw).with_context(|| format!("write {}", local.display()))?;
+    debug!(devices = index.devices.len(), "index.json refreshed");
+    Ok(index)
 }
 
 fn sync_depot(
@@ -121,50 +113,13 @@ fn sync_depot(
             continue;
         };
         let dst: PathBuf = dir.join(name);
-        if cached_matches(&dst, &file_entry.sha256) {
+        if http::cached_matches(&dst, &file_entry.sha256) {
             debug!(depot, file = name, "cache hit");
             continue;
         }
-        let url = format!(
-            "{}/{}{}",
-            server.trim_end_matches('/'),
-            entry.asset_path.trim_start_matches('/'),
-            name
-        );
-        debug!(%url, depot, "fetching");
-        let bytes = http_get_bytes(&url)?;
+        let bytes = http::fetch_file(server, &entry.asset_path, name)?;
         fs::write(&dst, &bytes).with_context(|| format!("write {}", dst.display()))?;
         info!(depot, file = name, bytes = bytes.len(), "downloaded");
     }
     Ok(())
-}
-
-fn cached_matches(path: &Path, expected_sha: &str) -> bool {
-    let Ok(mut file) = fs::File::open(path) else {
-        return false;
-    };
-    let mut hasher = Sha256::new();
-    let mut buf = [0u8; 8192];
-    loop {
-        match file.read(&mut buf) {
-            Ok(0) => break,
-            Ok(n) => hasher.update(&buf[..n]),
-            Err(_) => return false,
-        }
-    }
-    let actual = format!("{:x}", hasher.finalize());
-    actual.eq_ignore_ascii_case(expected_sha)
-}
-
-fn http_get_bytes(url: &str) -> Result<Vec<u8>> {
-    let mut response = ureq::get(url)
-        .call()
-        .with_context(|| format!("GET {url}"))?;
-    let mut body = Vec::new();
-    response
-        .body_mut()
-        .as_reader()
-        .read_to_end(&mut body)
-        .with_context(|| format!("read body {url}"))?;
-    Ok(body)
 }

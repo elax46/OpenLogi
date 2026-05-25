@@ -17,8 +17,9 @@ use gpui::{
 };
 use gpui_component::{Selectable, popover::Popover, v_flex};
 
+use openlogi_assets::Metadata;
+
 use crate::asset::ResolvedAsset;
-use crate::asset::metadata::Metadata;
 use crate::data::mouse_buttons::{ButtonId, Hotspot, MOUSE_MODEL_SIZE, default_hotspots};
 use crate::mouse_model::leader_lines::{Label, Side, paint as paint_leader_lines};
 use crate::mouse_model::picker::action_picker;
@@ -176,20 +177,38 @@ fn asset_dimensions(meta: &Metadata, target_h: f32) -> (f32, f32) {
 
 /// Convert Logitech's percent-based markers into mouse-local pixel rects.
 /// Each marker is a point, so we centre a fixed-size hit area on it.
+/// Unknown slot names fall through silently — extending `ButtonId` to
+/// cover thumbwheels / modeshift buttons brings more hotspots online.
 fn asset_hotspots(meta: &Metadata, mouse_w: f32, mouse_h: f32) -> Vec<Hotspot> {
-    meta.hotspots()
-        .map(|h| {
-            let cx = h.marker.x / 100. * mouse_w;
-            let cy = h.marker.y / 100. * mouse_h;
-            Hotspot {
-                id: h.id,
+    meta.assignments()
+        .filter_map(|a| {
+            let id = map_slot_name(&a.slot_name)?;
+            let cx = a.marker.x / 100. * mouse_w;
+            let cy = a.marker.y / 100. * mouse_h;
+            Some(Hotspot {
+                id,
                 x: cx - ASSET_HOTSPOT / 2.,
                 y: cy - ASSET_HOTSPOT / 2.,
                 w: ASSET_HOTSPOT,
                 h: ASSET_HOTSPOT,
-            }
+            })
         })
         .collect()
+}
+
+/// Logitech's stable slot vocabulary → OpenLogi's `ButtonId`. Intentionally
+/// conservative; unknown names fall through so widening `ButtonId` later
+/// doesn't break old depots.
+fn map_slot_name(name: &str) -> Option<ButtonId> {
+    match name {
+        "SLOT_NAME_LEFT_BUTTON" => Some(ButtonId::LeftClick),
+        "SLOT_NAME_RIGHT_BUTTON" => Some(ButtonId::RightClick),
+        "SLOT_NAME_MIDDLE_BUTTON" => Some(ButtonId::MiddleClick),
+        "SLOT_NAME_BACK_BUTTON" => Some(ButtonId::Back),
+        "SLOT_NAME_FORWARD_BUTTON" => Some(ButtonId::Forward),
+        "SLOT_NAME_MODESHIFT_BUTTON" => Some(ButtonId::DpiToggle),
+        _ => None,
+    }
 }
 
 /// Lay labels out on the left side, evenly spaced down the mouse's vertical

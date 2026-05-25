@@ -1,0 +1,21 @@
+//! Shared asset registry types + HTTP fetch helpers for assets.openlogi.org.
+//!
+//! Consumers:
+//!
+//! - `openlogi-cli`: bulk-pulls the whole registry at packaging time
+//!   (`openlogi assets sync`).
+//! - `openlogi-gui`: pulls only the connected device's files at startup
+//!   (runtime safety net + dev convenience).
+//!
+//! No filesystem layout opinions live here — both consumers decide where
+//! files end up. This crate stays I/O-light: parsing, HTTP, hashing.
+
+pub mod http;
+pub mod index;
+pub mod metadata;
+
+pub use http::{
+    cached_matches, fetch_file, fetch_index, read_bytes, sha256_hex, sha256_of_file,
+};
+pub use index::{DeviceEntry, FileEntry, Index};
+pub use metadata::{Assignment, Direction, ImageEntry, Metadata, Origin, Point};

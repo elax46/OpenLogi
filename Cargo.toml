@@ -3,6 +3,7 @@ resolver = "3"
 members = [
     "crates/openlogi-core",
     "crates/openlogi-hid",
+    "crates/openlogi-assets",
     "crates/openlogi-cli",
     "crates/openlogi-gui",
 ]
@@ -29,7 +30,7 @@ toml = "0.8"
 ureq = { version = "3", default-features = false, features = ["rustls", "json"] }
 # SHA-256 for asset cache validation (already a transitive dep of rustls).
 sha2 = "0.10"
-clap = { version = "4", features = ["derive"] }
+clap = { version = "4", features = ["derive", "env"] }
 anyhow = "1"
 thiserror = "2"
 tracing = "0.1"

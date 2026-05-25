@@ -15,6 +15,9 @@ path = "src/main.rs"
 [dependencies]
 openlogi-core = { path = "../openlogi-core" }
 openlogi-hid = { path = "../openlogi-hid" }
+# Shared asset registry schema + HTTP fetch helpers (drives `openlogi
+# assets sync`).
+openlogi-assets = { path = "../openlogi-assets" }
 # Command-line parsing with derive.
 clap = { workspace = true }
 # Single error sink for the binary; libraries use thiserror.
