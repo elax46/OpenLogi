@@ -64,6 +64,13 @@ pub struct AppSettings {
     /// enough to install / remove it.
     #[serde(default)]
     pub launch_at_login: bool,
+    /// Opt-in update check (P2.8). **Off by default** to honour the
+    /// README's "no telemetry, no auto-update poller" promise. When true,
+    /// the app makes exactly one `HEAD /repos/AprilNEA/OpenLogi/releases/
+    /// latest` request per launch and logs whether a newer version is
+    /// available — no automatic download.
+    #[serde(default)]
+    pub check_for_updates: bool,
 }
 
 impl AppSettings {

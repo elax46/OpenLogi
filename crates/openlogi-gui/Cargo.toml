@@ -34,6 +34,7 @@ tracing-subscriber = { workspace = true }
 directories = { workspace = true }
 fs4 = { version = "1.1.0", features = ["sync"] }
 thiserror.workspace = true
+ureq.workspace = true
 
 [lints]
 workspace = true

@@ -16,6 +16,7 @@ mod mouse_model;
 mod single_instance;
 mod state;
 mod theme;
+mod updater;
 
 use std::collections::BTreeMap;
 use std::sync::{Arc, RwLock};
@@ -60,9 +61,11 @@ fn main() -> Result<()> {
 
     // P2.2: keep the LaunchAgent in sync with the user's autostart preference.
     // Cheap (one fs read + maybe write), failures are logged inside.
+    // P2.8: fire the opt-in update check from the same early-config snapshot.
     let early_config = Config::load_or_default().ok();
     if let Some(cfg) = early_config.as_ref() {
         launch_agent::reconcile(cfg.app_settings.launch_at_login);
+        updater::maybe_check(&cfg.app_settings);
     }
 
     let inventories = enumerate_blocking().context("HID enumeration failed")?;
