@@ -8,13 +8,10 @@
 //! `core_metadata.json`. Without an asset, we fall back to the original
 //! shape-based silhouette plus [`default_hotspots`] / [`default_labels`].
 
-use std::time::Duration;
-
 use gpui::{
-    Anchor, Animation, AnimationExt as _, AnyElement, App, Context, ElementId, Entity, FontWeight,
-    InteractiveElement, IntoElement, MouseButton, MouseDownEvent, ParentElement, Render, RenderOnce,
-    StatefulInteractiveElement as _, Styled, Subscription, Window, canvas, div, ease_in_out, hsla,
-    img, px, rgb,
+    Anchor, AnyElement, App, Context, ElementId, Entity, FontWeight, InteractiveElement,
+    IntoElement, MouseButton, MouseDownEvent, ParentElement, Render, RenderOnce,
+    StatefulInteractiveElement as _, Styled, Subscription, Window, canvas, div, hsla, img, px, rgb,
 };
 use gpui_component::{Selectable, popover::Popover, v_flex};
 
@@ -39,10 +36,6 @@ const LABEL_H: f32 = 44.;
 /// edge of a label card. Leader lines terminate at this offset so they
 /// touch the card without crossing into the text.
 const CARD_EDGE_INSET: f32 = SIDE_GAP + (SIDE_W - LABEL_W);
-
-/// Vertical amplitude of the breathing loop. Two pixels reads as a soft
-/// rise/fall without feeling unstable.
-const BREATH_AMPLITUDE: f32 = 2.0;
 
 /// Approx pixel width of each hotspot hit-target. Logitech only gives us a
 /// marker point per button, not a rectangle, so we size by hand.
@@ -151,6 +144,9 @@ impl Render for MouseModelView {
                     mouse_w,
                 )
             }))
+            // DIAGNOSTIC: dropped `.with_animation` to test whether the
+            // breathing wrapper is breaking popover deferred-paint /
+            // re-render. Restore once popovers are confirmed working.
             .child(
                 div()
                     .absolute()
@@ -161,17 +157,7 @@ impl Render for MouseModelView {
                     .child(device_art)
                     .children(hotspots_outer.iter().enumerate().map(|(idx, hotspot)| {
                         hotspot_popover(idx, *hotspot, hovered, active, &view)
-                    }))
-                    .with_animation(
-                        "mouse-breath",
-                        Animation::new(Duration::from_secs(4))
-                            .repeat()
-                            .with_easing(ease_in_out),
-                        |this, delta| {
-                            let dy = (delta * std::f32::consts::TAU).sin() * BREATH_AMPLITUDE;
-                            this.top(px(dy))
-                        },
-                    ),
+                    })),
             )
     }
 }
