@@ -8,10 +8,13 @@
 //! `core_metadata.json`. Without an asset, we fall back to the original
 //! shape-based silhouette plus [`default_hotspots`] / [`default_labels`].
 
+use std::time::Duration;
+
 use gpui::{
-    Anchor, AnyElement, App, Context, ElementId, Entity, FontWeight, InteractiveElement,
-    IntoElement, MouseButton, MouseDownEvent, ParentElement, Render, RenderOnce,
-    StatefulInteractiveElement as _, Styled, Subscription, Window, canvas, div, hsla, img, px, rgb,
+    Anchor, Animation, AnimationExt as _, AnyElement, App, Context, ElementId, Entity, FontWeight,
+    InteractiveElement, IntoElement, MouseButton, ParentElement, Render, RenderOnce,
+    StatefulInteractiveElement as _, Styled, Subscription, Window, canvas, div, ease_in_out, hsla,
+    img, px, rgb,
 };
 use gpui_component::{Selectable, popover::Popover, v_flex};
 
@@ -41,6 +44,10 @@ const CARD_EDGE_INSET: f32 = SIDE_GAP + (SIDE_W - LABEL_W);
 /// marker point per button, not a rectangle, so we size by hand.
 const ASSET_HOTSPOT: f32 = 56.;
 
+/// Vertical amplitude of the breathing loop. Two pixels reads as a soft
+/// rise/fall without feeling unstable.
+const BREATH_AMPLITUDE: f32 = 2.0;
+
 pub struct MouseModelView {
     hovered: Option<ButtonId>,
     /// Repaints when the carousel switches devices. Held by value so the
@@ -59,6 +66,12 @@ impl MouseModelView {
 }
 
 impl Render for MouseModelView {
+    #[allow(
+        clippy::too_many_lines,
+        reason = "the breathing + hotspots split + leader-canvas closure put the render fn over \
+                  the pedantic limit; further extraction would just move noise around without \
+                  making any single piece clearer"
+    )]
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         // Pull everything that depends on the active device out of AppState
         // up front. Cloning is cheap (small structs, single small Vec) and it
@@ -118,7 +131,12 @@ impl Render for MouseModelView {
         )
         .size_full();
 
-        // Either the real device image, or the shape-based silhouette.
+        // Breathing animation lives on a dedicated layer *behind* the
+        // hotspot popovers. `.with_animation` rebuilds the wrapped
+        // element each frame, which knocks gpui-component Popover's
+        // keyed-state + deferred-anchored painting off the rails. Hotspots
+        // stay in their own non-animated container; only the device PNG
+        // (or synthetic silhouette) breathes.
         let device_art: AnyElement = match asset.as_ref() {
             Some(a) => img(a.image_path.clone())
                 .w(px(mouse_w))
@@ -126,6 +144,35 @@ impl Render for MouseModelView {
                 .into_any_element(),
             None => silhouette(mouse_w, mouse_h).into_any_element(),
         };
+        let breathing_art = div()
+            .absolute()
+            .left(px(mouse_left))
+            .top(px(0.))
+            .w(px(mouse_w))
+            .h(px(mouse_h))
+            .child(device_art)
+            .with_animation(
+                "mouse-breath",
+                Animation::new(Duration::from_secs(4))
+                    .repeat()
+                    .with_easing(ease_in_out),
+                |this, delta| {
+                    let dy = (delta * std::f32::consts::TAU).sin() * BREATH_AMPLITUDE;
+                    this.top(px(dy))
+                },
+            );
+        let hotspots_layer = div()
+            .absolute()
+            .left(px(mouse_left))
+            .top(px(0.))
+            .w(px(mouse_w))
+            .h(px(mouse_h))
+            .children(
+                hotspots_outer
+                    .iter()
+                    .enumerate()
+                    .map(|(idx, hotspot)| hotspot_popover(idx, *hotspot, hovered, active, &view)),
+            );
 
         div()
             .relative()
@@ -144,21 +191,8 @@ impl Render for MouseModelView {
                     mouse_w,
                 )
             }))
-            // DIAGNOSTIC: dropped `.with_animation` to test whether the
-            // breathing wrapper is breaking popover deferred-paint /
-            // re-render. Restore once popovers are confirmed working.
-            .child(
-                div()
-                    .absolute()
-                    .left(px(mouse_left))
-                    .top(px(0.))
-                    .w(px(mouse_w))
-                    .h(px(mouse_h))
-                    .child(device_art)
-                    .children(hotspots_outer.iter().enumerate().map(|(idx, hotspot)| {
-                        hotspot_popover(idx, *hotspot, hovered, active, &view)
-                    })),
-            )
+            .child(breathing_art)
+            .child(hotspots_layer)
     }
 }
 
@@ -462,10 +496,11 @@ impl RenderOnce for HotspotTrigger {
         // for the percentage) and the popover's `on_mouse_down` never
         // receives clicks. Painting explicit pixels gives the popover's
         // wrapper a real hit-test region.
-        // DIAGNOSTIC: hotspot rects always visible (red border + faint
-        // bg) so we can see exactly where the click target sits relative
-        // to the device PNG, plus per-event traces to localise where
-        // clicks are being absorbed.
+        // Hotspot trigger fills its wrapper (the absolute-positioned div
+        // in `hotspot_popover` carries the geometry). Explicit pixel
+        // dimensions rather than `.size_full()` so gpui-component's
+        // Popover wrapper has a real hit-test region: without them the
+        // popover's parent collapses to 0×0 and clicks never register.
         div()
             .id(self.id)
             .w(px(hotspot.w))
@@ -475,16 +510,15 @@ impl RenderOnce for HotspotTrigger {
             .border_color(if highlighted {
                 gpui::Hsla::from(rgb(ACCENT_BLUE))
             } else {
-                hsla(0.0, 0.85, 0.55, 0.7)
+                hsla(0., 0., 0., 0.)
             })
             .bg(if highlighted {
                 hsla(0.6, 0.85, 0.6, 0.18)
             } else {
-                hsla(0.0, 0.85, 0.55, 0.12)
+                hsla(0., 0., 0., 0.)
             })
             .on_hover(move |hovered, _window, cx| {
                 let is_hovered = *hovered;
-                tracing::info!(?btn, hovered = is_hovered, "hotspot hover event");
                 view.update(cx, |this, cx| {
                     if is_hovered {
                         this.hovered = Some(btn);
@@ -493,9 +527,6 @@ impl RenderOnce for HotspotTrigger {
                     }
                     cx.notify();
                 });
-            })
-            .on_mouse_down(MouseButton::Left, move |_ev: &MouseDownEvent, _window, _cx| {
-                tracing::info!(?btn, "hotspot click reached trigger");
             })
     }
 }
