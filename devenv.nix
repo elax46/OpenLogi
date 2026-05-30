@@ -13,6 +13,7 @@
     git
     cmake
     sccache
+    prek
   ];
 
   languages.rust = {
