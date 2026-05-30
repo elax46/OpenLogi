@@ -1,6 +1,6 @@
 //! Device-list construction and selection helpers for [`super::AppState`].
 
-use openlogi_core::device::DeviceInventory;
+use openlogi_core::device::{BatteryInfo, DeviceInventory, DeviceKind};
 
 use crate::asset::{AssetResolver, ResolvedAsset};
 use crate::hardware::DpiTarget;
@@ -9,12 +9,22 @@ use crate::hardware::DpiTarget;
 /// the config key (for bindings/DPI persistence), a display name, the
 /// resolved asset (PNG + metadata, or `None` for the synthetic fallback),
 /// and the routing target for HID++ DPI writes.
+///
+/// The `kind` / `slot` / `online` / `battery` fields mirror the source
+/// [`PairedDevice`](openlogi_core::device::PairedDevice) so the header
+/// carousel can render straight from the device list — the list is the single
+/// source of truth for "which devices exist", keeping carousel order aligned
+/// with [`super::AppState::current_device`].
 #[derive(Debug, Clone)]
 pub struct DeviceRecord {
     pub config_key: String,
     pub display_name: String,
     pub asset: Option<ResolvedAsset>,
     pub dpi_target: Option<DpiTarget>,
+    pub kind: DeviceKind,
+    pub slot: u8,
+    pub online: bool,
+    pub battery: Option<BatteryInfo>,
 }
 
 pub(super) fn build_device_list(
@@ -44,6 +54,10 @@ pub(super) fn build_device_list(
                 display_name,
                 asset,
                 dpi_target,
+                kind: paired.kind,
+                slot: paired.slot,
+                online: paired.online,
+                battery: paired.battery.clone(),
             });
         }
     }

@@ -10,7 +10,19 @@
 # Interpolation uses `%{name}` and must be preserved verbatim in every locale.
 _version: 2
 
-# ── App chrome: accessibility gate, footer (app.rs) ─────────────────────────
+# ── App chrome: accessibility gate, empty state, footer (app.rs) ────────────
+"No device connected":
+  ja: デバイスが接続されていません
+  zh-CN: 未连接设备
+  zh-HK: 未連接裝置
+"Plug in or pair a supported Logitech device — it'll show up here automatically.":
+  ja: 対応する Logitech デバイスを接続またはペアリングすると、ここに自動的に表示されます。
+  zh-CN: 接入或配对受支持的 Logitech 设备，它会自动显示在这里。
+  zh-HK: 接入或配對受支援的 Logitech 裝置，它會自動顯示在這裡。
+"Using Logi Options+? Quit it first — both apps compete for HID++ access.":
+  ja: Logi Options+ をお使いですか?まず終了してください — 両方のアプリが HID++ アクセスを奪い合います。
+  zh-CN: 正在使用 Logi Options+?请先退出 —— 两个应用会争夺 HID++ 访问权限。
+  zh-HK: 正在使用 Logi Options+?請先結束 —— 兩個應用會爭奪 HID++ 存取權限。
 "Accessibility permission required":
   ja: アクセシビリティ権限が必要です
   zh-CN: 需要「辅助功能」权限

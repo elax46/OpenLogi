@@ -23,6 +23,10 @@ pub struct AppView {
     dpi_panel: Entity<DpiPanel>,
     #[allow(dead_code, reason = "held to keep the appearance observer alive")]
     appearance_obs: Option<Subscription>,
+    /// Re-renders the root when the device list changes so the empty state
+    /// swaps to the device UI (and back) on hot-plug, without a restart.
+    #[allow(dead_code, reason = "held to keep the AppState observer alive")]
+    state_obs: Subscription,
     accessibility_dismissed: bool,
 }
 
@@ -58,14 +62,16 @@ impl AppView {
             }
         }
 
-        let carousel = cx.new(|cx| DeviceCarousel::new(inventories, cx));
+        let carousel = cx.new(DeviceCarousel::new);
         let mouse_model = cx.new(MouseModelView::new);
         let dpi_panel = cx.new(DpiPanel::new);
+        let state_obs = cx.observe_global::<AppState>(|_, cx| cx.notify());
         Self {
             carousel,
             mouse_model,
             dpi_panel,
             appearance_obs: None,
+            state_obs,
             accessibility_dismissed: false,
         }
     }
@@ -167,6 +173,15 @@ impl Render for AppView {
             return Self::accessibility_gate(pal, cx);
         }
 
+        let has_device = cx
+            .try_global::<AppState>()
+            .is_some_and(|s| !s.device_list.is_empty());
+        let body = if has_device {
+            body(&self.mouse_model, &self.dpi_panel).into_any_element()
+        } else {
+            device_empty_state(pal)
+        };
+
         v_flex()
             .size_full()
             .bg(pal.bg)
@@ -174,7 +189,7 @@ impl Render for AppView {
             .on_action(|_: &Minimize, window, _| window.minimize_window())
             .on_action(|_: &Zoom, window, _| window.zoom_window())
             .child(header(&self.carousel, pal))
-            .child(body(&self.mouse_model, &self.dpi_panel))
+            .child(body)
             .child(footer(pal, granted))
             .into_any_element()
     }
@@ -209,6 +224,63 @@ fn body(mouse_model: &Entity<MouseModelView>, dpi_panel: &Entity<DpiPanel>) -> i
         .p_6()
         .child(mouse_model.clone())
         .child(dpi_panel.clone())
+}
+
+/// Body shown when no device is connected. The inventory watcher keeps polling
+/// (every 2 s) and `AppView`'s `AppState` observer swaps the device UI back in
+/// the moment one appears, so this is purely a wait-and-pair placeholder.
+fn device_empty_state(pal: Palette) -> AnyElement {
+    v_flex()
+        .flex_1()
+        .w_full()
+        .min_h_0()
+        .items_center()
+        .justify_center()
+        .gap_4()
+        .p_8()
+        .child(
+            Icon::new(IconName::Search)
+                .size_8()
+                .text_color(pal.text_muted),
+        )
+        .child(
+            div()
+                .text_xl()
+                .font_weight(FontWeight::SEMIBOLD)
+                .child(tr!("No device connected")),
+        )
+        .child(
+            div()
+                .max_w(px(440.))
+                .text_sm()
+                .text_color(pal.text_muted)
+                .child(tr!(
+                    "Plug in or pair a supported Logitech device — it'll show up here automatically."
+                )),
+        )
+        .child(
+            div()
+                .id("empty-add-device")
+                .px_4()
+                .py_2()
+                .rounded_md()
+                .bg(rgb(theme::ACCENT_BLUE))
+                .text_color(rgb(0x00ff_ffff))
+                .font_weight(FontWeight::MEDIUM)
+                .cursor_pointer()
+                .child(
+                    h_flex()
+                        .gap_2()
+                        .items_center()
+                        .child(Icon::new(IconName::Plus))
+                        .child(tr!("Add Device")),
+                )
+                .on_click(|_, _, cx| crate::windows::add_device::open(cx)),
+        )
+        .child(div().max_w(px(440.)).text_xs().text_color(pal.text_muted).child(tr!(
+            "Using Logi Options+? Quit it first — both apps compete for HID++ access."
+        )))
+        .into_any_element()
 }
 
 fn footer(pal: Palette, granted: bool) -> impl IntoElement {

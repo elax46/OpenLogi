@@ -3,18 +3,14 @@ use std::time::Duration;
 use gpui::{
     Animation, AnimationExt as _, AnyElement, BorrowAppContext as _, BoxShadow, Context, Entity,
     FontWeight, InteractiveElement, IntoElement, ParentElement, Render,
-    StatefulInteractiveElement as _, Styled, Window, div, ease_in_out, point,
-    prelude::FluentBuilder as _, pulsating_between, px, rgb,
+    StatefulInteractiveElement as _, Styled, Subscription, Window, div, ease_in_out, point,
+    prelude::FluentBuilder as _, px, rgb,
 };
 use gpui_component::{Icon, IconName, h_flex, v_flex};
-use openlogi_core::device::{
-    BatteryInfo, BatteryLevel, BatteryStatus, DeviceInventory, DeviceKind, PairedDevice,
-};
+use openlogi_core::device::{BatteryInfo, BatteryLevel, BatteryStatus, DeviceKind};
 
-use crate::state::AppState;
-use crate::theme::{
-    self, ACCENT_BLUE, Palette, STATUS_CONNECTED, STATUS_CONNECTING, STATUS_OFFLINE,
-};
+use crate::state::{AppState, DeviceRecord};
+use crate::theme::{self, ACCENT_BLUE, Palette, STATUS_CONNECTED, STATUS_OFFLINE};
 
 const CARD_W: f32 = 220.;
 const CARD_H: f32 = 64.;
@@ -23,7 +19,6 @@ const DOT_SIZE: f32 = 10.;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Status {
     Connected,
-    Connecting,
     Offline,
 }
 
@@ -31,7 +26,6 @@ impl Status {
     fn color(self) -> u32 {
         match self {
             Status::Connected => STATUS_CONNECTED,
-            Status::Connecting => STATUS_CONNECTING,
             Status::Offline => STATUS_OFFLINE,
         }
     }
@@ -46,34 +40,36 @@ struct CardData {
 }
 
 /// Header carousel for paired devices.
+///
+/// Renders straight from [`AppState::device_list`] and re-renders whenever
+/// that global changes (hot-plug, selection), so a device that connects after
+/// launch shows up without a restart. Holds no card snapshot of its own.
 pub struct DeviceCarousel {
-    cards: Vec<CardData>,
+    _state_obs: Subscription,
 }
 
 impl DeviceCarousel {
-    /// Build device cards from the current inventories.
-    pub fn new(inventories: &[DeviceInventory], _cx: &mut Context<Self>) -> Self {
-        let mut cards: Vec<CardData> = inventories
-            .iter()
-            .flat_map(|inv| inv.paired.iter().map(card_from_paired))
-            .collect();
-
-        if cards.is_empty() {
-            cards = demo_cards();
+    /// Build the carousel and subscribe to device-list changes.
+    pub fn new(cx: &mut Context<Self>) -> Self {
+        let state_obs = cx.observe_global::<AppState>(|_, cx| cx.notify());
+        Self {
+            _state_obs: state_obs,
         }
-
-        Self { cards }
     }
 }
 
 impl Render for DeviceCarousel {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let selected = cx
-            .try_global::<AppState>()
-            .map_or(0, |s| s.current_device)
-            .min(self.cards.len().saturating_sub(1));
         let entity = cx.entity();
         let pal = theme::palette(cx);
+        let (cards, selected) = cx.try_global::<AppState>().map_or_else(
+            || (Vec::new(), 0),
+            |s| {
+                let cards: Vec<CardData> = s.device_list.iter().map(card_from_record).collect();
+                let selected = s.current_device.min(cards.len().saturating_sub(1));
+                (cards, selected)
+            },
+        );
 
         h_flex()
             .id("device-carousel")
@@ -81,7 +77,7 @@ impl Render for DeviceCarousel {
             .items_center()
             .overflow_x_scroll()
             .children(
-                self.cards
+                cards
                     .iter()
                     .enumerate()
                     .map(|(idx, card)| card_view(idx, card, idx == selected, &entity, pal)),
@@ -153,15 +149,6 @@ fn status_dot(status: Status) -> AnyElement {
         .bg(rgb(status.color()));
     match status {
         Status::Offline => base.into_any_element(),
-        Status::Connecting => base
-            .with_animation(
-                "status-fast",
-                Animation::new(Duration::from_millis(450))
-                    .repeat()
-                    .with_easing(pulsating_between(0.3, 1.)),
-                Styled::opacity,
-            )
-            .into_any_element(),
         Status::Connected => base
             .with_animation(
                 "status-breath",
@@ -182,46 +169,17 @@ fn status_dot(status: Status) -> AnyElement {
     }
 }
 
-fn card_from_paired(d: &PairedDevice) -> CardData {
-    let name = d
-        .codename
-        .clone()
-        .unwrap_or_else(|| format!("Slot {}", d.slot));
-    let sub = format!("{} · slot {}", kind_label(d.kind), d.slot);
-    let status = if d.online {
-        Status::Connected
-    } else {
-        Status::Offline
-    };
+fn card_from_record(r: &DeviceRecord) -> CardData {
     CardData {
-        name,
-        sub,
-        status,
-        battery: d.battery.clone(),
+        name: r.display_name.clone(),
+        sub: format!("{} · slot {}", kind_label(r.kind), r.slot),
+        status: if r.online {
+            Status::Connected
+        } else {
+            Status::Offline
+        },
+        battery: r.battery.clone(),
     }
-}
-
-fn demo_cards() -> Vec<CardData> {
-    vec![
-        CardData {
-            name: "MX Master".into(),
-            sub: "Mouse · slot 1".into(),
-            status: Status::Connected,
-            battery: None,
-        },
-        CardData {
-            name: "Lift".into(),
-            sub: "Mouse · slot 2".into(),
-            status: Status::Connecting,
-            battery: None,
-        },
-        CardData {
-            name: "M650".into(),
-            sub: "Mouse · slot 3".into(),
-            status: Status::Offline,
-            battery: None,
-        },
-    ]
 }
 
 /// Battery readout for a device card: a charge/level icon plus the percentage,
