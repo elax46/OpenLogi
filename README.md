@@ -1,158 +1,143 @@
-# OpenLogi
+<h4 align="right"><strong>English</strong> | <a href="README_CN.md">简体中文</a></h4>
+
+<!--<p align="center">
+    <img src= width=138/>
+</p>-->
+
+<h1 align="center">OpenLogi</h1>
+<p align="center"><strong>Lightweight, Local-first, alternative to Logi Options+</strong></p>
+
+
+<div align="center">
+    <a href="https://twitter.com/AprilNEA" target="_blank">
+    <img alt="twitter" src="https://img.shields.io/badge/follow-AprilNEA-green?style=flat-square&logo=Twitter"></a>
+    <a href="https://t.me/+pCVJtHAgI3hjYTkx" target="_blank">
+    <img alt="telegram" src="https://img.shields.io/badge/chat-telegram-blueviolet?style=flat-square&logo=Telegram"></a>
+    <a href="https://github.com/AprilNEA/OpenLogi/releases" target="_blank">
+    <img alt="GitHub downloads" src="https://img.shields.io/github/downloads/AprilNEA/OpenLogi/total.svg?style=flat-square"></a>
+    <a href="https://github.com/AprilNEA/OpenLogi/commits" target="_blank">
+    <img alt="GitHub commit" src="https://img.shields.io/github/commit-activity/m/AprilNEA/OpenLogi?style=flat-square"></a>
+    <a href="https://github.com/AprilNEA/OpenLogi/issues?q=is%3Aissue+is%3Aclosed" target="_blank">
+    <img alt="GitHub closed issues" src="https://img.shields.io/github/issues-closed/AprilNEA/OpenLogi.svg?style=flat-square"></a>
+</div>
 
 > **Options+ ? Try OpenLogi.**
 
-A lightweight, local-first, open-source companion for Logitech HID++ peripherals.
-No telemetry. No cloud. No account. No auto-update checker. Plain TOML config.
-
-![status: pre-alpha](https://img.shields.io/badge/status-pre--alpha-orange)
-![rust: stable](https://img.shields.io/badge/rust-stable-blue)
-<!-- ![ci](https://github.com/AprilNEA/OpenLogi/actions/workflows/ci.yml/badge.svg) -->
+Remap buttons, drive DPI and SmartShift, and switch profiles per app — without a
+Logitech account, telemetry, or the official Options+ install. No cloud, plain
+TOML config; the only network calls are device-image fetches and an opt-in,
+off-by-default update check.
 
 ---
 
 ## What it is
 
-OpenLogi talks to Logitech HID++ mice, keyboards, and trackballs without
-running the official Logi Options+ application. v0.0.1 is a probe-only CLI:
-plug in a Logi Bolt receiver, run `openlogi`, see what's paired and how full
-the batteries are.
+OpenLogi talks to Logitech HID++ mice over a Logi Bolt receiver — or a
+Bluetooth-direct / wired connection — without running Logi Options+. It ships
+two binaries:
+
+- **`openlogi-gui`** — a GPUI desktop app: an interactive mouse diagram with
+  clickable hotspots, a per-button action picker (37 built-in actions plus
+  recorded custom shortcuts), DPI presets, a SmartShift toggle, per-application
+  profile overlays, and a device carousel that switches between paired devices
+  live.
+- **`openlogi`** — a CLI for headless inventory (`list`) plus asset-sync and
+  on-device diagnostic subcommands.
+
+Everything is local: bindings live in a plain TOML file, button presses are
+remapped through the OS event tap, and DPI / SmartShift changes are written
+straight to the device over HID++.
+
+macOS is the supported platform today. Linux and Windows compile (HID
+enumeration works), but the OS-level event hook is a stub — see
+[Status](#status).
 
 ## What it is not
 
-- **Not a daemon.** Today it's a one-shot CLI; a background process will come
-  when there's something useful for it to do (event injection, profile auto-switch).
-- **Not a GUI.** No tray icon, no settings window. The config is a TOML file you
-  edit. A graphical front-end may exist one day; it will not live in this binary.
-- **Not a network app.** It will never make outbound HTTP, never check for
-  updates, never report telemetry. Update by `cargo install` or `git pull`.
-- **Not a drop-in for Options+.** Many features (gesture button + swipes, custom
-  per-app profiles, DPI cycle, scroll inversion) are on the roadmap but not yet
-  implemented. See [Status](#status).
+- **Not a headless daemon.** The remapping hook runs inside `openlogi-gui`
+  while it's open (optionally launched at login). There is no separate
+  background service.
+- **Not a cloud or telemetry app.** No account, no telemetry, no auto-download.
+  The only outbound traffic is (1) fetching your device's render image from
+  `assets.openlogi.org` on first launch — avoidable entirely with a
+  bundled-assets build — and (2) an **opt-in** update check, off by default,
+  that makes a single HEAD request to the GitHub releases API and never
+  downloads anything.
+- **Not a drop-in for Options+ — yet.** Scroll-wheel rotation binding,
+  gesture-button swipe *hardware* capture, scroll inversion, and Logitech Flow
+  are not implemented. Side-button remapping, DPI, SmartShift, and per-app
+  profiles are. See [Status](#status).
 - **Not affiliated with Logitech.** "Logitech", "MX Master", and "Options+" are
   trademarks of Logitech International S.A.
 
 ## Status
 
-| Capability | v0.0.1 |
+Pre-alpha, macOS-first. The workspace builds on Linux and Windows (CI keeps them
+green), but the interactive features below require the macOS event tap.
+
+| Capability | State |
 |---|---|
-| Discover Logi Bolt receivers (CLI + GUI) | ✅ |
-| List paired devices (slot, codename, kind, online state, wpid) | ✅ |
-| Battery percentage / level / charging status | ✅ (online devices) |
-| GPUI desktop window (static device list) | ✅ |
-| Direct-Bluetooth devices (no receiver) | ❌ |
+| Discover Bolt receivers + list paired devices (CLI + GUI) | ✅ |
+| Bluetooth-direct / wired devices (no receiver) | ✅ |
+| Battery percentage / charge state | ✅ (online devices) |
+| Interactive GUI: carousel, mouse diagram, action picker | ✅ macOS |
+| Button remapping via the OS event tap (side Back / Forward today) | ✅ macOS |
+| 37-action catalog + recorded custom keyboard shortcuts | ✅ macOS¹ |
+| DPI control + presets + Cycle / Set-preset actions (HID++ `0x2201`) | ✅ macOS |
+| SmartShift wheel-mode toggle (HID++ `0x2111`) | ✅ macOS |
+| Per-application profile overlays (auto-switch on app focus) | ✅ macOS |
+| Launch-at-login + opt-in update check | ✅ (TOML only — no settings UI yet) |
+| Gesture-button per-direction bindings | 🟡 configurable; hardware capture pending |
+| Middle / mode-shift / thumbwheel button capture | 🟡 configurable; hook owns side buttons only |
+| Linux / Windows event hook | ❌ stub (`Unsupported`) |
 | Unifying receivers | ❌ (not yet in `hidpp 0.2`) |
-| SmartShift toggle | 🚧 v0.0.2 |
-| DPI control | 🚧 needs upstream `hidpp` feature `0x2201` |
-| Button remapping | 🚧 needs upstream `hidpp` feature `0x1B04` |
-| Per-app profile switching | 🚧 needs above + foreground-app detector |
+
+¹ A few actions (e.g. the media keys) currently log their intended event rather
+than posting it — tracked as a follow-up.
 
 ## Install
 
-Prerequisites: a recent stable Rust toolchain (Edition 2024, MSRV 1.85).
+> [!IMPORTANT]
+> Quit **Logi Options+** first — the two applications fight over HID++ access and only one can own a given receiver at a time.
+
+Download the signed, notarized `.dmg` from the
+[latest release](https://github.com/AprilNEA/OpenLogi/releases/latest) and drag
+`OpenLogi.app` to `/Applications`.
+
+Or install via [Homebrew](https://brew.sh):
 
 ```sh
-git clone https://github.com/AprilNEA/OpenLogi
-cd OpenLogi
-cargo run --release -- list
+brew install --cask aprilnea/tap/openlogi
 ```
 
-Or build and put the binary somewhere on `PATH`:
+To build from source, see [DEVELOPMENT.md](DEVELOPMENT.md).
+
+## Usage (CLI)
 
 ```sh
-cargo build --release
-cp target/release/openlogi ~/.local/bin/
+openlogi list                 # paired devices: slot, codename, kind, online, battery
+openlogi assets sync          # pre-fetch device renders from assets.openlogi.org
+openlogi diag features        # dump every HID++ feature the active device reports
+openlogi diag dpi             # read → write → read-back → restore DPI (smoke test)
+openlogi diag smartshift      # toggle SmartShift and restore (smoke test)
 ```
 
-The GUI binary (`openlogi-gui`) opens a desktop window with the same device list:
-
-```sh
-cargo run -p openlogi-gui --release
-```
-
-GUI builds need Apple's full Xcode toolchain (Xcode 16+ with the optional Metal
-Toolchain component) on macOS. CLI builds need only stable Rust.
-
-To build a macOS DMG locally, install `create-dmg`; the packaging script will
-install `cargo-bundle` if needed:
-
-```sh
-brew install create-dmg
-bash scripts/package-macos.sh
-```
-
-The default DMG is lean: device renders are fetched on demand at first launch.
-Set `OPENLOGI_BUNDLE_ASSETS=1` before packaging to bundle every render for an
-offline DMG.
-
-### macOS
-
-Quit **Logi Options+** before running `openlogi` — the two applications fight
-over HID++ access and only one can talk to a given receiver at a time.
-
-### Linux
-
-You'll need read access to `/dev/hidraw*`. The shipped scripts and udev rules
-will land alongside the first Linux release.
-
-### Windows
-
-Not tested in v0.0.1. The HID transport (`async-hid`) is cross-platform; bug
-reports welcome.
+Running `openlogi` with no subcommand defaults to `list`. Set
+`OPENLOGI_LOG=debug` for verbose tracing on either binary.
 
 ## Configuration
 
-Config lives at the platform-standard application support path:
+See [CONFIGURATION.md](docs/CONFIGURATION.md)
 
-- macOS: `~/Library/Application Support/dev.OpenLogi.openlogi/config.toml`
-- Linux: `$XDG_CONFIG_HOME/openlogi/config.toml`
-- Windows: `%APPDATA%\OpenLogi\openlogi\config\config.toml`
+## Developing
 
-v0.0.1 doesn't read anything from it; the file isn't created until v0.0.2.
-
-## Project layout
-
-```
-crates/
-  openlogi-core/   serializable types, config, paths — no HID, no async
-  openlogi-hid/    hidpp + async-hid glue: enumerate(), inventory types
-  openlogi-cli/    the `openlogi` binary
-  openlogi-gui/    the `openlogi-gui` binary — GPUI + gpui-component
-```
-
-## Developing on devenv (macOS)
-
-This repo's `devenv.nix` sets up a Nix-based dev shell with sccache, the stable
-Rust toolchain, and the env overrides GPUI needs. The first time you `cd` into
-the repo after pulling a change to `devenv.nix`, **reload direnv** so the new
-env vars (`DEVELOPER_DIR`, `SDKROOT`, the PATH filter that strips Nix's
-`xcbuild` xcrun stub) take effect:
-
-```sh
-direnv reload    # or: exit your shell and `cd` back in
-```
-
-Without that, GPUI's `gpui_macos` build script can't find Apple's `metal`
-shader compiler, and link errors about missing `_write` / `_sysconf` /
-`_waitpid` symbols show up because the Nix `apple-sdk-14.4` stub doesn't
-expose `libSystem` the way Apple's real linker wants.
-
-The devenv DMG shortcut mirrors the GitHub Actions packaging workflow:
-
-```sh
-devenv tasks run openlogi:dmg
-```
+See [DEVELOPMENT.md](docs/DEVELOPMENT.md)
 
 ## Acknowledgments
 
-- **[`hidpp`](https://crates.io/crates/hidpp)** by [@lus](https://github.com/lus)
-  implements the HID++ protocol in Rust. OpenLogi is a consumer; this project
-  would not be a weekend's work without it.
-- **[Solaar](https://github.com/pwr-Solaar/Solaar)** is the de-facto reference
-  for Logitech HID++ on Linux and a source of device-specific knowledge that
-  Logitech does not publish.
-- **[external-reference](https://github.com/external-reference)** by Tom Badash informed the
-  feature scoping and the per-OS hook design we'll need for v0.0.3+.
+- [`hidpp`](https://crates.io/crates/hidpp) by [@lus](https://github.com/lus)
+- [Solaar](https://github.com/pwr-Solaar/Solaar)
+- [Mouser](https://github.com/TomBadash/Mouser) by Tom Badash
 
 ## License
 
@@ -161,7 +146,4 @@ Dual-licensed under either of
 - Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE))
 - MIT license ([LICENSE-MIT](LICENSE-MIT))
 
-at your option. The dual license is standard in the Rust ecosystem (see Tokio,
-Serde, etc.): Apache contributes a patent grant, MIT maximises downstream
-compatibility, and `MIT OR Apache-2.0` is recognised by every tool that audits
-licenses.
+at your option.
