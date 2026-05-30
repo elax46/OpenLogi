@@ -1,11 +1,11 @@
 <h4 align="right"><a href="README.md">English</a> | <strong>简体中文</strong></h4>
 
 <p align="center">
-    <img src="design/icon/openlogi.png" width="138" alt="OpenLogi"/>
+    <img src="https://assets.openlogi.org/brand/openlogi-animated.svg" width="138" alt="OpenLogi"/>
 </p>
 
 <h1 align="center">OpenLogi</h1>
-<p align="center"><strong>⚡️ 原生、本地优先的 Logitech Options+ 替代品，用 Rust 编写 🦀 —— 通过 HID++ 重映射按键、调节 DPI 与 SmartShift。无账号、无遥测。</strong></p>
+<p align="center"><strong>⚡️ 原生、本地优先的 Logitech Options+ 替代品，用 Rust 编写 🦀<br/>通过 HID++ 重映射按键、调节 DPI 与 SmartShift。无账号、无遥测。</strong></p>
 
 
 <div align="center">
@@ -32,36 +32,14 @@ SmartShift、按应用切换配置。完全本地化，纯 TOML 配置；
 
 OpenLogi 通过 Logi Bolt 接收器 —— 或蓝牙直连 / 有线连接 —— 与罗技 HID++ 鼠标通信，无需运行 Logi Options+。它包含两个二进制：
 
-- **`openlogi-gui`** —— 基于 GPUI 的桌面应用：交互式鼠标示意图（按钮可点击）、
-  按钮动作选择器（37 个内置动作 + 录制的自定义快捷键）、DPI 预设、SmartShift
-  开关、按应用的配置叠加层，以及可在配对设备间实时切换的设备轮播。
-- **`openlogi`** —— 用于无头清单查看（`list`）以及资源同步与设备诊断的命令行
-  工具。
+- **[OpenLogi GUI](crates/openlogi-gui)** —— 基于 GPUI 的桌面应用：交互式鼠标示意图（按钮可点击）、按钮动作选择器（37 个内置动作 + 录制的自定义快捷键）、DPI 预设、SmartShift 开关、按应用的配置叠加层，以及可在配对设备间实时切换的设备轮播。
+- **[OpenLogi CLI](crates/openlogi-cli)** —— 用于无头清单查看（`list`）以及资源同步与设备诊断的命令行工具。
 
-所有数据都在本地：绑定保存在普通 TOML 文件里，按键按下经由系统事件 tap 重映
-射，DPI / SmartShift 变更通过 HID++ 直接写入设备。
+所有数据都在本地：绑定保存在普通 TOML 文件里，按键按下经由系统事件 tap 重映射，DPI / SmartShift 变更通过 HID++ 直接写入设备。
 
-目前仅支持 macOS。Linux 与 Windows 可以编译（HID 枚举可工作），但 OS 级事件
-钩子还是占位实现 —— 详见 [当前状态](#当前状态)。
+目前仅支持 macOS，很快将会支持 Linux 和 Windows。
 
-## 不是什么
-
-- **不是无头守护进程。** 重映射钩子运行在 `openlogi-gui` 内部，应用打开时生效
-  （可选开机启动）。没有独立的后台服务。
-- **不是云端或遥测应用。** 没有账号、没有遥测、没有自动下载。唯一对外的网络
-  请求是（1）首次启动时从 `assets.openlogi.org` 拉取设备渲染图 —— 用
-  bundled-assets 构建可完全避免，以及（2）一个**默认关闭**的可选更新检查，仅
-  对 GitHub releases API 发起一次 HEAD 请求，不下载任何东西。
-- **暂时还不是 Options+ 的完全替代品。** 滚轮旋转绑定、手势按键挥动的*硬件*
-  捕获、滚动反向、以及 Logitech Flow 尚未实现。侧键重映射、DPI、SmartShift、
-  按应用配置已经可用。详见 [当前状态](#当前状态)。
-- **与罗技无关。** "Logitech"、"MX Master" 与 "Options+" 是 Logitech
-  International S.A. 的商标。
-
-## 当前状态
-
-预 alpha 阶段，macOS 优先。整个 workspace 在 Linux 和 Windows 也能编译（CI
-持续保持绿色），但下面的交互功能依赖 macOS 事件 tap。
+## 路线图
 
 | 能力 | 状态 |
 |---|---|
@@ -121,3 +99,7 @@ brew install --cask aprilnea/tap/openlogi
 
 - Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE))
 - MIT license ([LICENSE-MIT](LICENSE-MIT))
+
+---
+
+**与罗技无关。** "Logitech"、"MX Master" 与 "Options+" 是 Logitech International S.A. 的商标。
