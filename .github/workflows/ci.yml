@@ -77,12 +77,22 @@ jobs:
       - run: cargo test --workspace --exclude openlogi-gui
 
   test-macos:
-    name: tests (macos)
-    runs-on: macos-latest
+    name: tests (macos, ${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-latest
+          - arch: x86_64
+            runner: macos-15-intel
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+      - name: Verify runner architecture
+        run: test "$(uname -m)" = "${{ matrix.arch }}"
       - run: cargo test --workspace --all-targets
 
   check-windows:
