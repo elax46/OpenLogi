@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3](https://github.com/AprilNEA/OpenLogi/compare/v0.1.2...v0.1.3) - 2026-05-31
+
+### Added
+
+- macOS menu-bar (tray) app: lives in the menu bar with the interactive mouse diagram, a mappable gesture-button hotspot, and live Open / Quit
+- Dynamic Dock + menu-bar presence — full window with the app menu when open, tray-only once the window is closed; optional silent start-minimized on login
+- "Show in menu bar" setting to keep OpenLogi in the menu bar, or run it as an ordinary Dock app instead
+- ⌘W closes the focused window
+
+### Fixed
+
+- Use the real Xcode toolchain for GUI builds and build the installer DMG correctly
+
 ## [0.1.2](https://github.com/AprilNEA/OpenLogi/compare/v0.1.1...v0.1.2) - 2026-05-31
 
 ### Added
