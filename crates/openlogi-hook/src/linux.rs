@@ -122,9 +122,10 @@ fn signal_pipe(fd: &OwnedFd) {
 
 fn create_pipe() -> io::Result<(OwnedFd, OwnedFd)> {
     let mut fds = [0i32; 2];
-    // SAFETY: fds is a valid two-element array; pipe2() fills it with two new
-    // fds on success. O_CLOEXEC keeps the pipe from leaking into any child
-    // process the app spawns.
+    // SAFETY: fds is a valid two-element array; pipe2() fills it with two new fds on success.
+    // O_CLOEXEC prevents the fds from being inherited by forked children — without it a child
+    // holding the write-end would prevent the hook thread's read-end from ever seeing EOF,
+    // blocking clean shutdown.
     if unsafe { libc::pipe2(fds.as_mut_ptr(), libc::O_CLOEXEC) } < 0 {
         return Err(io::Error::last_os_error());
     }

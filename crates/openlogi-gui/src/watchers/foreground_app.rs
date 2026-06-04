@@ -14,7 +14,7 @@ pub type ForegroundUpdate = Option<String>;
 /// Watch foreground application changes.
 pub fn spawn(period: Duration) -> mpsc::UnboundedReceiver<ForegroundUpdate> {
     let (tx, rx) = mpsc::unbounded_channel();
-    if !cfg!(target_os = "macos") {
+    if !cfg!(any(target_os = "macos", target_os = "linux")) {
         drop(tx);
         let _ = period;
         return rx;
