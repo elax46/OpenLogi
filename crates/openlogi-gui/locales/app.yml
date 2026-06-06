@@ -25,6 +25,7 @@ _version: 2
   zh-CN: 设备
   zh-HK: 裝置
   zh-TW: 裝置
+  it: Dispositivi
 # Device-detail tabs (app.rs)
 "Buttons":
   ja: ボタン
@@ -32,12 +33,14 @@ _version: 2
   zh-CN: 按键
   zh-HK: 按鍵
   zh-TW: 按鍵
+  it: Pulsanti
 "Pointer":
   ja: ポインター
   ru: "Указатель"
   zh-CN: 指针
   zh-HK: 指標
   zh-TW: 指標
+  it: Puntatore
 
 # Keyboard lighting tab + panel (app.rs, components/lighting_panel.rs)
 "Lighting":
@@ -46,30 +49,35 @@ _version: 2
   zh-CN: 灯光
   zh-HK: 燈光
   zh-TW: 燈光
+  it: Illuminazione
 "LIGHTING":
   ja: ライト
   ru: "ПОДСВЕТКА"
   zh-CN: 灯光
   zh-HK: 燈光
   zh-TW: 燈光
+  it: ILLUMINAZIONE
 "BRIGHTNESS":
   ja: 明るさ
   ru: "ЯРКОСТЬ"
   zh-CN: 亮度
   zh-HK: 亮度
   zh-TW: 亮度
+  it: LUMINOSITÀ
 "On":
   ja: オン
   ru: "Вкл"
   zh-CN: 开
   zh-HK: 開
   zh-TW: 開
+  it: On
 "Off":
   ja: オフ
   ru: "Выкл"
   zh-CN: 关
   zh-HK: 關
   zh-TW: 關
+  it: Off
 
 # ── Menu-bar status item (platform/menubar.rs) ──────────────────────────────
 "Open OpenLogi":
@@ -93,210 +101,245 @@ _version: 2
   zh-CN: 接入或配对受支持的 Logitech 设备，它会自动显示在这里。如需直接蓝牙连接，请在电脑的蓝牙设置中配对。
   zh-HK: 接入或配對受支援的 Logitech 裝置，它會自動顯示在這裡。如需直接藍牙連接，請在電腦的藍牙設定中配對。
   zh-TW: 接上或配對相容的 Logitech 裝置，裝置就會自動顯示在這裡。若要使用直接藍牙連線，請在電腦的藍牙設定中配對。
+  it: Collega o associa un dispositivo Logitech supportato: apparirà qui automaticamente. Per le connessioni Bluetooth dirette, esegui l'associazione nelle impostazioni Bluetooth del tuo computer.
 "No active device":
   ja: アクティブなデバイスがありません
   ru: "Нет активного устройства"
   zh-CN: 没有活动设备
   zh-HK: 沒有使用中的裝置
   zh-TW: 沒有使用中的裝置
+  it: Nessun dispositivo attivo
 "Pointer tuning":
   ja: ポインター調整
   ru: "Настройка указателя"
   zh-CN: 指针调校
   zh-HK: 指標調校
   zh-TW: 指標調整
+  it: Regolazione puntatore
 "Device details":
   ja: デバイス詳細
   ru: "Сведения об устройстве"
   zh-CN: 设备详情
   zh-HK: 裝置詳情
   zh-TW: 裝置詳細資訊
+  it: Dettagli dispositivo
 "Configuration":
   ja: 設定
   ru: "Конфигурация"
   zh-CN: 配置
   zh-HK: 設定
   zh-TW: 設定
+  it: Configurazione
 "Connection":
   ja: 接続
   ru: "Подключение"
   zh-CN: 连接
   zh-HK: 連線
   zh-TW: 連線
+  it: Connessione
 "Slot":
   ja: スロット
   ru: "Слот"
   zh-CN: 槽位
   zh-HK: 插槽
   zh-TW: 插槽
+  it: Slot
 "Device key":
   ja: デバイスキー
   ru: "Ключ устройства"
   zh-CN: 设备键
   zh-HK: 裝置鍵
   zh-TW: 裝置鍵
+  it: Chiave dispositivo
 "Serial":
   ja: シリアル
   ru: "Серийный номер"
   zh-CN: 序列号
   zh-HK: 序號
   zh-TW: 序號
+  it: Seriale
 "Active profile":
   ja: アクティブなプロファイル
   ru: "Активный профиль"
   zh-CN: 当前配置文件
   zh-HK: 目前設定檔
   zh-TW: 目前設定檔
+  it: Profilo attivo
 "Default profile":
   ja: デフォルトプロファイル
   ru: "Профиль по умолчанию"
   zh-CN: 默认配置文件
   zh-HK: 預設設定檔
   zh-TW: 預設設定檔
+  it: Profilo predefinito
 "Button bindings":
   ja: ボタン割り当て
   ru: "Привязки кнопок"
   zh-CN: 按键绑定
   zh-HK: 按鍵綁定
   zh-TW: 按鍵指派
+  it: Associazioni pulsanti
 "Gesture bindings":
   ja: ジェスチャー割り当て
   ru: "Привязки жестов"
   zh-CN: 手势绑定
   zh-HK: 手勢綁定
   zh-TW: 手勢指派
+  it: Associazioni gesture
 "DPI presets":
   ja: DPI プリセット
   ru: "Пресеты DPI"
   zh-CN: DPI 预设
   zh-HK: DPI 預設
   zh-TW: DPI 預設
+  it: Preset DPI
 "Config folder":
   ja: 設定フォルダー
   ru: "Папка конфигурации"
   zh-CN: 配置文件夹
   zh-HK: 設定資料夾
   zh-TW: 設定資料夾
+  it: Cartella di configurazione
 "Connected":
   ja: 接続済み
   ru: "Подключено"
   zh-CN: 已连接
   zh-HK: 已連線
   zh-TW: 已連線
+  it: Connesso
 "Offline":
   ja: オフライン
   ru: "Не в сети"
   zh-CN: 离线
   zh-HK: 離線
   zh-TW: 離線
+  it: Offline
 "Battery":
   ja: バッテリー
   ru: "Батарея"
   zh-CN: 电量
   zh-HK: 電量
   zh-TW: 電量
+  it: Batteria
 "Charging":
   ja: 充電中
   ru: "Заряжается"
   zh-CN: 充电中
   zh-HK: 充電中
   zh-TW: 充電中
+  it: In carica
 "Full":
   ja: フル充電
   ru: "Полный заряд"
   zh-CN: 已充满
   zh-HK: 已充滿
   zh-TW: 已充滿
+  it: Carica completa
 "Battery error":
   ja: バッテリーエラー
   ru: "Ошибка батареи"
   zh-CN: 电池错误
   zh-HK: 電池錯誤
   zh-TW: 電池錯誤
+  it: Errore batteria
 "Bolt receiver":
   ja: Bolt レシーバー
   ru: "Приёмник Bolt"
   zh-CN: Bolt 接收器
   zh-HK: Bolt 接收器
   zh-TW: Bolt 接收器
+  it: Ricevitore Bolt
 "Direct connection":
   ja: 直接接続
   ru: "Прямое подключение"
   zh-CN: 直接连接
   zh-HK: 直接連線
   zh-TW: 直接連線
+  it: Connessione diretta
 "Unavailable":
   ja: 利用不可
   ru: "Недоступно"
   zh-CN: 不可用
   zh-HK: 不可用
   zh-TW: 無法使用
+  it: Non disponibile
 "Mouse":
   ja: マウス
   ru: "Мышь"
   zh-CN: 鼠标
   zh-HK: 滑鼠
   zh-TW: 滑鼠
+  it: Mouse
 "Keyboard":
   ja: キーボード
   ru: "Клавиатура"
   zh-CN: 键盘
   zh-HK: 鍵盤
   zh-TW: 鍵盤
+  it: Tastiera
 "Numpad":
   ja: テンキー
   ru: "Цифровая клавиатура"
   zh-CN: 数字键盘
   zh-HK: 數字鍵盤
   zh-TW: 數字鍵盤
+  it: Tastierino numerico
 "Presenter":
   ja: プレゼンター
   ru: "Презентер"
   zh-CN: 演示器
   zh-HK: 簡報器
   zh-TW: 簡報器
+  it: Presenter
 "Remote":
   ja: リモコン
   ru: "Пульт"
   zh-CN: 遥控器
   zh-HK: 遙控器
   zh-TW: 遙控器
+  it: Telecomando
 "Trackball":
   ja: トラックボール
   ru: "Трекбол"
   zh-CN: 轨迹球
   zh-HK: 軌跡球
   zh-TW: 軌跡球
+  it: Trackball
 "Touchpad":
   ja: タッチパッド
   ru: "Сенсорная панель"
   zh-CN: 触控板
   zh-HK: 觸控板
   zh-TW: 觸控板
+  it: Touchpad
 "Tablet":
   ja: タブレット
   ru: "Планшет"
   zh-CN: 数位板
   zh-HK: 平板
   zh-TW: 平板
+  it: Tablet
 "Gamepad":
   ja: ゲームパッド
   ru: "Геймпад"
   zh-CN: 游戏手柄
   zh-HK: 遊戲手掣
   zh-TW: 遊戲手把
+  it: Gamepad
 "Joystick":
   ja: ジョイスティック
   ru: "Джойстик"
   zh-CN: 摇杆
   zh-HK: 搖桿
   zh-TW: 搖桿
+  it: Joystick
 "Headset":
   ja: ヘッドセット
   ru: "Гарнитура"
   zh-CN: 耳机
   zh-HK: 耳機
   zh-TW: 耳機
+  it: Cuffie
 "Using Logi Options+? Quit it first — both apps compete for HID++ access.":
   ja: Logi Options+ をお使いですか?まず終了してください — 両方のアプリが HID++ アクセスを奪い合います。
   ru: "Используете Logi Options+? Сначала закройте его — оба приложения конкурируют за доступ к HID++."
@@ -382,12 +425,14 @@ _version: 2
   zh-CN: 检查更新…
   zh-HK: 檢查更新…
   zh-TW: 檢查更新…
+  it: Controlla aggiornamenti…
 "Edit":
   ja: 編集
   ru: "Правка"
   zh-CN: 编辑
   zh-HK: 編輯
   zh-TW: 編輯
+  it: Modifica
 "Undo":
   ja: 取り消す
   ru: "Отменить"
@@ -436,18 +481,21 @@ _version: 2
   zh-CN: 显示
   zh-HK: 顯示
   zh-TW: 顯示
+  it: Vista
 "Open Configuration Folder":
   ja: 設定フォルダーを開く
   ru: "Открыть папку конфигурации"
   zh-CN: 打开配置文件夹
   zh-HK: 開啟設定資料夾
   zh-TW: 開啟設定資料夾
+  it: Apri cartella configurazione
 "Device":
   ja: デバイス
   ru: "Устройство"
   zh-CN: 设备
   zh-HK: 裝置
   zh-TW: 裝置
+  it: Dispositivo
 "Hide OpenLogi":
   ja: OpenLogi を隠す
   ru: "Скрыть OpenLogi"
@@ -503,30 +551,35 @@ _version: 2
   zh-CN: 全部移到前面
   zh-HK: 全部移到最前
   zh-TW: 全部移到最前
+  it: Porta tutto in primo piano
 "Help":
   ja: ヘルプ
   ru: "Справка"
   zh-CN: 帮助
   zh-HK: 說明
   zh-TW: 輔助說明
+  it: Aiuto
 "OpenLogi Help":
   ja: OpenLogi ヘルプ
   ru: "Справка OpenLogi"
   zh-CN: OpenLogi 帮助
   zh-HK: OpenLogi 說明
   zh-TW: OpenLogi 輔助說明
+  it: Aiuto OpenLogi
 "Open GitHub Repository":
   ja: GitHub リポジトリを開く
   ru: "Открыть репозиторий GitHub"
   zh-CN: 打开 GitHub 仓库
   zh-HK: 開啟 GitHub 儲存庫
   zh-TW: 開啟 GitHub 儲存庫
+  it: Apri repository GitHub
 "Latest Release":
   ja: 最新リリース
   ru: "Последний выпуск"
   zh-CN: 最新版本
   zh-HK: 最新版本
   zh-TW: 最新版本
+  it: Ultima versione
 
 # ── About window (about.rs) ─────────────────────────────────────────────────
 "Open-source Logitech mouse configuration — DPI, SmartShift, button bindings, and gestures.":
@@ -626,77 +679,83 @@ _version: 2
   it: Aggiungi
 
 # ── SmartShift panel (components/smartshift_panel.rs) ───────────────────────
-# "SmartShift" (card title) and "On"/"Off" are intentionally absent: the brand
-# name is identical across locales (English-key fallback), and On/Off are
-# already defined for the lighting toggle above. "Sensitivity" is rendered as
-# "切换灵敏度" / "切り替え感度" etc. rather than the bare "灵敏度" the DPI panel
-# uses, so the two cards stacked in the Pointer tab stay distinguishable.
 "Wheel mode":
   ja: ホイールモード
   ru: "Режим колеса"
   zh-CN: 滚轮模式
   zh-HK: 滾輪模式
   zh-TW: 滾輪模式
+  it: Modalità rotellina
 "Free spin":
   ja: フリースピン
   ru: "Свободное вращение"
   zh-CN: 自由滚动
   zh-HK: 自由滾動
   zh-TW: 自由滾動
+  it: Rotazione libera
 "Ratchet":
   ja: ラチェット
   ru: "Трещотка"
   zh-CN: 棘轮
   zh-HK: 棘輪
   zh-TW: 棘輪
+  it: Scatto
 "Sensitivity":
   ja: 切り替え感度
   ru: "Чувствительность переключения"
   zh-CN: 切换灵敏度
   zh-HK: 切換靈敏度
   zh-TW: 切換靈敏度
+  it: Sensibilità
 "Higher keeps the ratchet engaged longer before free-spin.":
   ja: 値を大きくすると、フリースピンに切り替わるまでラチェットが長く維持されます。
   ru: "Большее значение дольше удерживает трещотку до перехода в свободное вращение."
   zh-CN: 数值越高，棘轮保持越久才进入自由滚动。
   zh-HK: 數值越高，棘輪維持越久才進入自由滾動。
   zh-TW: 數值越高，棘輪維持越久才會進入自由滾動。
+  it: Un valore più alto mantiene lo scatto più a lungo prima della rotazione libera.
 "Permanent ratchet":
   ja: 常時ラチェット
   ru: "Постоянная трещотка"
   zh-CN: 永久棘轮
   zh-HK: 永久棘輪
   zh-TW: 永久棘輪
+  it: Scatto permanente
 "Never auto-switch to free-spin.":
   ja: フリースピンに自動で切り替えません。
   ru: "Никогда автоматически не переключаться в свободное вращение."
   zh-CN: 永不自动切换到自由滚动。
   zh-HK: 永不自動切換至自由滾動。
   zh-TW: 永不自動切換至自由滾動。
+  it: Non passare mai automaticamente alla rotazione libera.
 "Device offline — SmartShift unavailable.":
   ja: デバイスがオフラインです — SmartShift は利用できません。
   ru: "Устройство не в сети — SmartShift недоступен."
   zh-CN: 设备离线 —— SmartShift 不可用。
   zh-HK: 裝置離線 —— SmartShift 不可用。
   zh-TW: 裝置離線 —— SmartShift 無法使用。
+  it: Dispositivo offline — SmartShift non disponibile.
 "Reading SmartShift settings…":
   ja: SmartShift 設定を読み取り中…
   ru: "Чтение настроек SmartShift…"
   zh-CN: 正在读取 SmartShift 设置…
   zh-HK: 正在讀取 SmartShift 設定…
   zh-TW: 正在讀取 SmartShift 設定…
+  it: Lettura impostazioni SmartShift in corso…
 "Couldn't read SmartShift — click to retry.":
   ja: SmartShift を読み取れませんでした — クリックして再試行。
   ru: "Не удалось прочитать SmartShift — нажмите, чтобы повторить."
   zh-CN: 无法读取 SmartShift —— 点击重试。
   zh-HK: 無法讀取 SmartShift —— 點擊重試。
-  zh-TW: 無法讀取 SmartShift —— 按一下重試。
+  zh-TW: 正在讀取 SmartShift 設定…
+  it: Impossibile leggere SmartShift — clicca per riprovare.
 "This device does not support SmartShift.":
   ja: このデバイスは SmartShift に対応していません。
   ru: "Это устройство не поддерживает SmartShift."
   zh-CN: 此设备不支持 SmartShift。
   zh-HK: 此裝置不支援 SmartShift。
   zh-TW: 此裝置不支援 SmartShift。
+  it: Questo dispositivo non supporta SmartShift.
 
 # ── Binding popover scaffolding (mouse_model/picker.rs) ─────────────────────
 "Bind %{name}":
@@ -712,24 +771,28 @@ _version: 2
   zh-CN: 未绑定
   zh-HK: 未綁定
   zh-TW: 未設定
+  it: Non associato
 "Default":
   ja: デフォルト
   ru: "По умолчанию"
   zh-CN: 默认
   zh-HK: 預設
   zh-TW: 預設
+  it: Predefinito
 "5 directions":
   ja: 5 方向
   ru: "5 направлений"
   zh-CN: 5 个方向
   zh-HK: 5 個方向
   zh-TW: 5 個方向
+  it: 5 direzioni
 "DPI Preset %{index}":
   ja: DPI プリセット %{index}
   ru: "Пресет DPI %{index}"
   zh-CN: 灵敏度预设 %{index}
   zh-HK: 靈敏度預設 %{index}
   zh-TW: 靈敏度預設 %{index}
+  it: Preset DPI %{index}
 "Gesture %{name}":
   ja: ジェスチャー %{name}
   ru: "Жест %{name}"
@@ -889,6 +952,7 @@ _version: 2
   zh-CN: 灵敏度
   zh-HK: 靈敏度
   zh-TW: 靈敏度
+  it: DPI
 
 # ── Actions (openlogi_core::binding::Action) ────────────────────────────────
 "Find":
@@ -980,11 +1044,15 @@ _version: 2
   ru: "Предыдущий рабочий стол"
   zh-CN: 上一个桌面
   zh-HK: 上一個桌面
+  zh-TW: 上一個桌面
+  it: Desktop precedente
 "Next Desktop":
   ja: 次のデスクトップ
   ru: "Следующий рабочий стол"
   zh-CN: 下一个桌面
   zh-HK: 下一個桌面
+  zh-TW: 下一個桌面
+  it: Desktop successivo
 "Show Desktop":
   ja: デスクトップを表示
   ru: "Показать рабочий стол"
@@ -1309,27 +1377,32 @@ _version: 2
   zh-CN: 拇指滚轮向上
   zh-HK: 拇指滾輪向上
   zh-TW: 拇指滾輪向上
+  it: Volante da pollice su
 "Thumb Wheel Down":
   ja: サムホイール 下
   ru: "Колесо большого пальца вниз"
   zh-CN: 拇指滚轮向下
   zh-HK: 拇指滾輪向下
   zh-TW: 拇指滾輪向下
+  it: Volante da pollice giù
 "Do Nothing":
   ja: 何もしない
   ru: "Ничего не делать"
   zh-CN: 不执行任何操作
   zh-HK: 不執行任何操作
   zh-TW: 不執行任何操作
+  it: Non fare nulla
 "Thumb Wheel Sensitivity":
   ja: サムホイールの感度
   ru: "Чувствительность колеса большого пальца"
   zh-CN: 拇指滚轮灵敏度
   zh-HK: 拇指滾輪靈敏度
   zh-TW: 拇指滾輪靈敏度
+  it: Sensibilità volante da pollice
 "Scales the thumb wheel's horizontal scroll speed and how readily custom wheel actions trigger.":
   ja: サムホイールの横スクロール速度と、カスタムホイール操作の発動しやすさを調整します。
   ru: "Масштабирует скорость горизонтальной прокрутки колеса и лёгкость срабатывания пользовательских действий колеса."
   zh-CN: 调整拇指滚轮的横向滚动速度，以及自定义滚轮操作的触发难易程度。
   zh-HK: 調整拇指滾輪的水平捲動速度，以及自訂滾輪操作的觸發難易度。
   zh-TW: 調整拇指滾輪的水平捲動速度，以及自訂滾輪操作的觸發難易度。
+  it: Regola la velocità di scorrimento orizzontale del volante da pollice e la facilità di attivazione delle azioni personalizzate della rotellina.
