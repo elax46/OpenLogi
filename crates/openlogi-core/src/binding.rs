@@ -313,13 +313,11 @@ pub enum Action {
     LaunchpadShow,
 
     // ── System ────────────────────────────────────────────────────────────────
-    /// Lock the screen (⌘⌃Q on macOS / Ctrl+Alt+L on Linux).
+    /// Lock the screen (⌘⌃Q on macOS).
     ///
-    /// On Linux, Ctrl+Alt+L is the default shortcut in GNOME and KDE. Other
-    /// desktop environments may use a different shortcut or none at all. A
-    /// future improvement would use `org.freedesktop.login1.LockSession()` via
-    /// D-Bus for compositor-independent locking; deferred until D-Bus support
-    /// (`zbus`) is added for per-app profiles.
+    /// On Linux, calls `org.freedesktop.login1.Manager.LockSession($XDG_SESSION_ID)`
+    /// on the system bus (current session only). Falls back to Super+L when
+    /// `$XDG_SESSION_ID` is unset or on non-systemd systems.
     LockScreen,
     /// Capture a screenshot.
     Screenshot,
@@ -690,13 +688,15 @@ impl Action {
             Action::PreviousDesktop => linux::press_key(&[ctrl, alt], KeyCode::KEY_LEFT),
             Action::NextDesktop => linux::press_key(&[ctrl, alt], KeyCode::KEY_RIGHT),
             // ── System ────────────────────────────────────────────────────────
-            // Ctrl+Alt+L is the standard lock shortcut in GNOME and KDE.
-            Action::LockScreen => linux::press_key(&[ctrl, alt], KeyCode::KEY_L),
+            // logind LockSessions() via the system bus; falls back to Super+L.
+            Action::LockScreen => linux::lock_screen(),
             Action::Screenshot => linux::press_key(&[], KeyCode::KEY_SYSRQ),
             // ── Media ─────────────────────────────────────────────────────────
-            Action::PlayPause => linux::press_key(&[], KeyCode::KEY_PLAYPAUSE),
-            Action::NextTrack => linux::press_key(&[], KeyCode::KEY_NEXTSONG),
-            Action::PrevTrack => linux::press_key(&[], KeyCode::KEY_PREVIOUSSONG),
+            // MPRIS targets the running media player; XF86 volume keys go to the
+            // system mixer (PulseAudio/PipeWire) which is what users expect.
+            Action::PlayPause => linux::mpris_command("PlayPause"),
+            Action::NextTrack => linux::mpris_command("Next"),
+            Action::PrevTrack => linux::mpris_command("Previous"),
             Action::VolumeUp => linux::press_key(&[], KeyCode::KEY_VOLUMEUP),
             Action::VolumeDown => linux::press_key(&[], KeyCode::KEY_VOLUMEDOWN),
             Action::MuteVolume => linux::press_key(&[], KeyCode::KEY_MUTE),
@@ -1334,6 +1334,7 @@ mod linux {
 
     use evdev::uinput::VirtualDevice;
     use evdev::{AttributeSet, EventType, InputEvent, KeyCode, RelativeAxisCode};
+    use zbus::blocking::Connection as DbusConn;
 
     const DEVICE_NAME: &str = "OpenLogi action injector";
 
@@ -1368,8 +1369,7 @@ mod linux {
         KeyCode::KEY_HOME,  KeyCode::KEY_END,   KeyCode::KEY_PAGEUP,   KeyCode::KEY_PAGEDOWN,
         KeyCode::KEY_TAB,   KeyCode::KEY_ENTER, KeyCode::KEY_BACKSPACE, KeyCode::KEY_DELETE,
         KeyCode::KEY_ESC,   KeyCode::KEY_SPACE,
-        // Modifiers (KEY_LEFTMETA not emitted by any current action — reserved
-        // for future Super/Windows-key mappings once D-Bus per-app profiles land)
+        // Modifiers (KEY_LEFTMETA used by the LockScreen Super+L fallback)
         KeyCode::KEY_LEFTCTRL, KeyCode::KEY_LEFTSHIFT, KeyCode::KEY_LEFTALT, KeyCode::KEY_LEFTMETA,
         // Function keys
         KeyCode::KEY_F1,  KeyCode::KEY_F2,  KeyCode::KEY_F3,  KeyCode::KEY_F4,
@@ -1592,6 +1592,104 @@ mod linux {
             0x7E => KeyCode::KEY_UP,         // kVK_UpArrow
             _ => return None,
         })
+    }
+
+    // ── D-Bus helpers ────────────────────────────────────────────────────────
+
+    static SESSION_BUS: LazyLock<Option<DbusConn>> = LazyLock::new(|| {
+        DbusConn::session()
+            .map_err(|e| tracing::warn!("D-Bus session bus unavailable: {e}"))
+            .ok()
+    });
+
+    static SYSTEM_BUS: LazyLock<Option<DbusConn>> = LazyLock::new(|| {
+        DbusConn::system()
+            .map_err(|e| tracing::warn!("D-Bus system bus unavailable: {e}"))
+            .ok()
+    });
+
+    /// Lock the screen via logind `LockSession($XDG_SESSION_ID)` on the system
+    /// bus, falling back to Super+L.
+    ///
+    /// Only the session identified by `$XDG_SESSION_ID` is locked; if the
+    /// variable is unset the D-Bus path is skipped entirely to avoid locking
+    /// all sessions on the machine. Super+L covers non-systemd systems and the
+    /// no-session-id case.
+    pub(super) fn lock_screen() {
+        if let (Some(conn), Ok(id)) = (SYSTEM_BUS.as_ref(), std::env::var("XDG_SESSION_ID")) {
+            match conn.call_method(
+                Some("org.freedesktop.login1"),
+                "/org/freedesktop/login1",
+                Some("org.freedesktop.login1.Manager"),
+                "LockSession",
+                &(id.as_str(),),
+            ) {
+                Ok(_) => {
+                    tracing::debug!("LockScreen via logind");
+                    return;
+                }
+                Err(e) => tracing::warn!("logind LockSession failed: {e}"),
+            }
+        }
+        // Super+L is the standard lock shortcut on GNOME and KDE.
+        tracing::debug!("LockScreen via Super+L key combo");
+        press_key(&[KeyCode::KEY_LEFTMETA], KeyCode::KEY_L);
+    }
+
+    /// Send `command` to the first MPRIS-capable media player on the session bus,
+    /// falling back to the corresponding XF86 multimedia key only if no MPRIS
+    /// player is found. When a player is found but the call fails, the fallback
+    /// is suppressed to avoid double-toggling (the player likely handles the
+    /// XF86 key too).
+    pub(super) fn mpris_command(command: &str) {
+        if try_mpris_command(command).is_none() {
+            let fallback = match command {
+                "PlayPause" => KeyCode::KEY_PLAYPAUSE,
+                "Next" => KeyCode::KEY_NEXTSONG,
+                "Previous" => KeyCode::KEY_PREVIOUSSONG,
+                _ => return,
+            };
+            press_key(&[], fallback);
+        }
+    }
+
+    fn try_mpris_command(command: &str) -> Option<()> {
+        let conn = SESSION_BUS.as_ref()?;
+        let reply = conn
+            .call_method(
+                Some("org.freedesktop.DBus"),
+                "/org/freedesktop/DBus",
+                Some("org.freedesktop.DBus"),
+                "ListNames",
+                &(),
+            )
+            .ok()?;
+        let names = reply.body().deserialize::<Vec<String>>().ok()?;
+        let Some(player) = names
+            .iter()
+            .find(|n| n.starts_with("org.mpris.MediaPlayer2."))
+        else {
+            tracing::debug!("no MPRIS player found — {command} via XF86 key fallback");
+            return None;
+        };
+        match conn.call_method(
+            Some(player.as_str()),
+            "/org/mpris/MediaPlayer2",
+            Some("org.mpris.MediaPlayer2.Player"),
+            command,
+            &(),
+        ) {
+            Ok(_) => {
+                tracing::debug!("MPRIS {command} via {player}");
+                Some(())
+            }
+            Err(e) => {
+                // Player was identified — suppress XF86 fallback to avoid
+                // double-toggling if the player also handles multimedia keys.
+                tracing::warn!("MPRIS {command} on {player} failed: {e}");
+                Some(())
+            }
+        }
     }
 }
 
